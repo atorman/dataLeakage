@@ -53,6 +53,7 @@ To view the DataLeakagePage, you must assign the correct permissions to the user
 Contributors include:
 
 * Adam Torman created and orchestrated this repository
+* Doug Bitting helped with the Google Charting API code
 
 This repo is As-Is. All pull requests are welcome.
 
