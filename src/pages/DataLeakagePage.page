@@ -1,0 +1,462 @@
+<!-- 
+ * Copyright (c) 2012, Salesforce.com, Inc.  All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ * 
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in
+ *     the documentation and/or other materials provided with the
+ *     distribution.
+ * 
+ *   * Neither the name of Salesforce.com nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+<apex:page controller="DataLeakageController" sidebar="false">
+    <!-- Google API inclusion -->
+    <apex:includeScript id="a" value="https://www.google.com/jsapi" />
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <apex:sectionHeader title="Data Leakage Events" subtitle="ApiEvents "/><br/>
+      
+        <h1>To learn more about the Data Leakage Detection Pilot, read the <a href="http://bit.ly/dldReleaseNotes" target="_blank">release notes</a> or the <a href="http://bit.ly/dldDocs" target="_blank">tip sheet</a> for more detail.</h1>
+      
+       <apex:pageBlock title="Last 5 Api Events" id="LastFive" >
+        <apex:dataTable value="{!ae}"
+                        var="sd"
+                        cellPadding="4" border="1">
+          <apex:column >
+            <apex:facet name="header" >User Name</apex:facet>
+            {!sd.Username}
+          </apex:column>
+          <apex:column >
+            <apex:facet name="header" >Soql</apex:facet>
+            {!sd.Soql}
+          </apex:column>
+          <apex:column >
+            <apex:facet name="header" >Event Time</apex:facet>
+            {!sd.EventTime}
+          </apex:column>
+          <apex:column >
+            <apex:facet name="header" >Rows Processed</apex:facet>
+            {!sd.RowsProcessed}
+          </apex:column>
+          <apex:column >
+            <apex:facet name="header" >Elapsed Time</apex:facet>
+            {!sd.ElapsedTime}
+          </apex:column>
+          <apex:column >
+            <apex:facet name="header" >Source Ip</apex:facet>
+            {!sd.SourceIp}
+          </apex:column>
+          <apex:column >
+            <apex:facet name="header" >Object Type</apex:facet>
+            {!sd.ObjectType}
+          </apex:column>
+          <apex:column >
+             <apex:facet name="header" >AdditionalInfo</apex:facet>
+            {!sd.AdditionalInfo}
+          </apex:column>
+          <apex:column >
+             <apex:facet name="header" >Login History Id</apex:facet>
+            {!sd.LoginHistoryId}
+          </apex:column>
+          <apex:column >
+             <apex:facet name="header" >User Agent</apex:facet>
+            {!sd.UserAgent}
+          </apex:column>
+          <apex:column >
+             <apex:facet name="header" >Api Version</apex:facet>
+            {!sd.ApiVersion}
+          </apex:column>
+        </apex:dataTable>
+      </apex:pageBlock>
+          
+      <apex:pageBlock title="Api Event Time Series Charts" id="ApiEvents">        
+        <!-- Google Charts will be drawn in this DIV -->
+        <div id="ApiEventElapsedTimeChart" /><br/>
+        <div id="ApiEventRowsProcessedChart" /><br/>
+        <div id="ApiEventsByUserChart" /><br/>
+        <div id="ApiEventsByObjectChart" /><br/>  
+        <div id="ApiEventsBySourceIpChart" /><br/> 
+        <div id="ApiEventsByUserAgentChart" /><br/> 
+      </apex:pageBlock>
+      <script type="text/javascript">
+        // Load the Visualization API and the piechart package.
+        google.load('visualization', '1.1', {'packages':['corechart']});
+
+        // Set a callback to run when the Google Visualization API is loaded.
+        google.setOnLoadCallback(drawAll);   
+
+    	// call each individual charting function 
+        function drawAll(){
+            ApiEventElapsedTime();
+            ApiEventRowsProcessed();
+            ApiEventsByUser();
+            ApiEventsByObject();
+            ApiEventsBySourceIp();
+            ApiEventsByUserAgent();
+           }
+        
+        // ApiEventElapsedTime Time Series Chart
+        function ApiEventElapsedTime() {        
+          
+            // get the metric data from the Apex Controller:
+            DataLeakageController.loadApiEvents( 
+                 function(result, event){  
+                     
+                     console.log('result = ' + result );
+                     // load Column chart
+                     var visualization = new google.visualization.AreaChart(document.getElementById('ApiEventElapsedTimeChart'));
+                     
+                     // prepare table model for chart with columns
+                     var data = new google.visualization.DataTable();
+                     data.addColumn('date', 'EventTime');
+                     data.addColumn('number', 'ElapsedTime');
+                     console.log('data = ' + data );
+                     
+                     // add rows from the remoting results
+                     for(var i =0; i<result.length;i++){
+                        var r = result[i];
+                        var myDate = new Date(r.EventTime);
+                        data.addRow([myDate, r.ElapsedTime]); 
+                      }
+                    
+                    // all done, lets draw the chart with some options to make it look nice.
+                    visualization.draw(data, 
+                    {title:'Total Amount of Elapsed Time for API Queries',
+                     colors:['red'],
+                    legend : 
+                        {position: 'top', textStyle: 
+                            {color: 'red', fontSize: 10}
+                        }, 
+                        width:window.innerWidth,vAxis:
+                        {textStyle:{fontSize: 10}},
+                        hAxis:{
+                            textStyle:
+                                {fontSize: 10},
+                        showTextEvery:1,
+                        slantedText:false}
+                    });
+              }, {escape:true});
+          }
+    // ApiEventRowsProcessed Time Series Chart
+        function ApiEventRowsProcessed() {        
+          
+            // get the metric data from the Apex Controller:
+            DataLeakageController.loadApiEvents( 
+                 function(result, event){  
+                     
+                     console.log('result = ' + result );
+                     // load Column chart
+                     var visualization = new google.visualization.AreaChart(document.getElementById('ApiEventRowsProcessedChart'));
+                     
+                     // prepare table model for chart with columns
+                     var data = new google.visualization.DataTable();
+                     data.addColumn('date', 'EventTime');
+                     data.addColumn('number', 'RowsProcessed');
+                     console.log('data = ' + data );
+                     
+                     // add rows from the remoting results
+                     for(var i =0; i<result.length;i++){
+                        var r = result[i];
+                        var myDate = new Date(r.EventTime);
+                        data.addRow([myDate, r.RowsProcessed ]); 
+                      }
+                    
+                    // all done, lets draw the chart with some options to make it look nice.
+                    visualization.draw(data, 
+                    {title:'Total Number of Rows Processed for API Queries',
+                     colors:['red'],
+                    legend : 
+                        {position: 'top', textStyle: 
+                            {color: 'red', fontSize: 10}
+                        }, 
+                        width:window.innerWidth,vAxis:
+                        {textStyle:{fontSize: 10}},
+                        hAxis:{
+                            textStyle:
+                                {fontSize: 10},
+                        showTextEvery:1,
+                        slantedText:false}
+                    });
+              }, {escape:true});
+          }
+    function ApiEventsByUser() {         
+             
+              // get the metric data from the Apex Controller:
+              DataLeakageController.loadApiEvents( 
+                     function(result, event){  
+                        
+                        // declare the empty nested map objects
+                        var finalMap = {};
+                        var userNames = {};
+                        
+                        // build the nested map object
+                        for (var i in result) {
+                            var elt = result[i];
+                            if (elt === undefined || elt.EventTime === undefined) {
+                                continue;
+                            }
+    
+                            // if not null, add to it; if null build the first map object
+                            if(finalMap[elt.EventTime] == undefined) {
+                                finalMap[elt.EventTime] = {};
+                            }
+                            
+                            finalMap[elt.EventTime][elt.Username] = elt.RowsProcessed;
+    
+                            if (elt.Username !== undefined){
+                                userNames[elt.Username] = 1;
+                                }
+                        }
+                        
+                         var visualization = new google.visualization.AreaChart(document.getElementById('ApiEventsByUserChart'));
+                         // prepare table model for chart with columns
+                         var data = new google.visualization.DataTable();
+                         
+                         // build the columns for the chart based on nested map values
+                         data.addColumn('date', 'Date');
+                         for (var userName in userNames) {
+                             data.addColumn('number', userName);
+                         }
+                         
+                         // add rows from the remoting results
+                         for(var key in finalMap){
+                             var row = [new Date(parseInt(key))];
+                             for (var userName in userNames) {
+                                 row.push(finalMap[key][userName] || 0);
+                             }
+                             data.addRow(row);
+                          }  
+                        
+                        // all done, lets draw the chart with some options to make it look nice.
+                        visualization.draw(data, 
+                        {title:'Api Queries By User',
+                        legend : 
+                            {position: 'top', textStyle: 
+                                {color: 'red', fontSize: 10}
+                            }, 
+                            width:window.innerWidth,vAxis:
+                            {textStyle:{fontSize: 10}},
+                            hAxis:{
+                                textStyle:
+                                    {fontSize: 10},
+                            showTextEvery:1,
+                            slantedText:false}
+                        });
+                  }, {escape:true});
+              }
+    function ApiEventsByObject() {         
+             
+              // get the metric data from the Apex Controller:
+              DataLeakageController.loadApiEvents( 
+                     function(result, event){  
+                        
+                        // declare the empty nested map objects
+                        var finalMap = {};
+                        var objectTypes = {};
+                        
+                        // build the nested map object
+                        for (var i in result) {
+                            var elt = result[i];
+                            if (elt === undefined || elt.EventTime === undefined) {
+                                continue;
+                            }
+    
+                            // if not null, add to it; if null build the first map object
+                            if(finalMap[elt.EventTime] == undefined) {
+                                finalMap[elt.EventTime] = {};
+                            }
+                            
+                            finalMap[elt.EventTime][elt.ObjectType] = elt.RowsProcessed;
+    
+                            if (elt.ObjectType !== undefined){
+                                objectTypes[elt.ObjectType] = 1;
+                                }
+                        }
+                        
+                         var visualization = new google.visualization.AreaChart(document.getElementById('ApiEventsByObjectChart'));
+                         // prepare table model for chart with columns
+                         var data = new google.visualization.DataTable();
+                         
+                         // build the columns for the chart based on nested map values
+                         data.addColumn('date', 'Date');
+                         for (var ObjectType in objectTypes) {
+                             data.addColumn('number', ObjectType);
+                         }
+                         
+                         // add rows from the remoting results
+                         for(var key in finalMap){
+                             var row = [new Date(parseInt(key))];
+                             for (var ObjectType in objectTypes) {
+                                 row.push(finalMap[key][ObjectType] || 0);
+                             }
+                             data.addRow(row);
+                          }  
+                        
+                        // all done, lets draw the chart with some options to make it look nice.
+                        visualization.draw(data, 
+                        {title:'Api Queries By Object',
+                        legend : 
+                            {position: 'top', textStyle: 
+                                {color: 'red', fontSize: 10}
+                            }, 
+                            width:window.innerWidth,vAxis:
+                            {textStyle:{fontSize: 10}},
+                            hAxis:{
+                                textStyle:
+                                    {fontSize: 10},
+                            showTextEvery:1,
+                            slantedText:false}
+                        });
+                  }, {escape:true});
+              }
+    function ApiEventsBySourceIp() {         
+             
+              // get the metric data from the Apex Controller:
+              DataLeakageController.loadApiEvents( 
+                     function(result, event){  
+                        
+                        // declare the empty nested map objects
+                        var finalMap = {};
+                        var sourceIps = {};
+                        
+                        // build the nested map object
+                        for (var i in result) {
+                            var elt = result[i];
+                            if (elt === undefined || elt.EventTime === undefined) {
+                                continue;
+                            }
+    
+                            // if not null, add to it; if null build the first map object
+                            if(finalMap[elt.EventTime] == undefined) {
+                                finalMap[elt.EventTime] = {};
+                            }
+                            
+                            finalMap[elt.EventTime][elt.SourceIp] = elt.RowsProcessed;
+    
+                            if (elt.SourceIp !== undefined){
+                                sourceIps[elt.SourceIp] = 1;
+                                }
+                        }
+                        
+                         var visualization = new google.visualization.AreaChart(document.getElementById('ApiEventsBySourceIpChart'));
+                         // prepare table model for chart with columns
+                         var data = new google.visualization.DataTable();
+                         
+                         // build the columns for the chart based on nested map values
+                         data.addColumn('date', 'Date');
+                         for (var SourceIp in sourceIps) {
+                             data.addColumn('number', SourceIp);
+                         }
+                         
+                         // add rows from the remoting results
+                         for(var key in finalMap){
+                             var row = [new Date(parseInt(key))];
+                             for (var SourceIp in sourceIps) {
+                                 row.push(finalMap[key][SourceIp] || 0);
+                             }
+                             data.addRow(row);
+                          }  
+                        
+                        // all done, lets draw the chart with some options to make it look nice.
+                        visualization.draw(data, 
+                        {title:'Api Queries By IP Address',
+                        legend : 
+                            {position: 'top', textStyle: 
+                                {color: 'red', fontSize: 10}
+                            }, 
+                            width:window.innerWidth,vAxis:
+                            {textStyle:{fontSize: 10}},
+                            hAxis:{
+                                textStyle:
+                                    {fontSize: 10},
+                            showTextEvery:1,
+                            slantedText:false}
+                        });
+                  }, {escape:true});
+              }
+    function ApiEventsByUserAgent() {         
+             
+              // get the metric data from the Apex Controller:
+              DataLeakageController.loadApiEvents( 
+                     function(result, event){  
+                        
+                        // declare the empty nested map objects
+                        var finalMap = {};
+                        var userAgents = {};
+                        
+                        // build the nested map object
+                        for (var i in result) {
+                            var elt = result[i];
+                            if (elt === undefined || elt.EventTime === undefined) {
+                                continue;
+                            }
+    
+                            // if not null, add to it; if null build the first map object
+                            if(finalMap[elt.EventTime] == undefined) {
+                                finalMap[elt.EventTime] = {};
+                            }
+                            
+                            finalMap[elt.EventTime][elt.UserAgent] = elt.RowsProcessed;
+    
+                            if (elt.UserAgent !== undefined){
+                                userAgents[elt.UserAgent] = 1;
+                                }
+                        }
+                        
+                         var visualization = new google.visualization.AreaChart(document.getElementById('ApiEventsByUserAgentChart'));
+                         // prepare table model for chart with columns
+                         var data = new google.visualization.DataTable();
+                         
+                         // build the columns for the chart based on nested map values
+                         data.addColumn('date', 'Date');
+                         for (var UserAgent in userAgents) {
+                             data.addColumn('number', UserAgent);
+                         }
+                         
+                         // add rows from the remoting results
+                         for(var key in finalMap){
+                             var row = [new Date(parseInt(key))];
+                             for (var UserAgent in userAgents) {
+                                 row.push(finalMap[key][UserAgent] || 0);
+                             }
+                             data.addRow(row);
+                          }  
+                        
+                        // all done, lets draw the chart with some options to make it look nice.
+                        visualization.draw(data, 
+                        {title:'Api Events By User Agent',
+                        legend : 
+                            {position: 'top', textStyle: 
+                                {color: 'red', fontSize: 10}
+                            }, 
+                            width:window.innerWidth,vAxis:
+                            {textStyle:{fontSize: 10}},
+                            hAxis:{
+                                textStyle:
+                                    {fontSize: 10},
+                            showTextEvery:1,
+                            slantedText:false}
+                        });
+                  }, {escape:true});
+              }
+    </script>
+</apex:page>
