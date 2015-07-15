@@ -57,4 +57,4 @@ Contributors include:
 This repo is As-Is. All pull requests are welcome.
 
 ## Screen Shot
-![alt tag] (https://raw.github.com/atorman/dataLeakage/master/samplePage.png)
+![alt tag] (https://github.com/atorman/dataLeakage/blob/master/samplePage.png)
