@@ -37,7 +37,7 @@
       
         <h1>To learn more about the Data Leakage Detection Pilot, read the <a href="http://bit.ly/dldReleaseNotes" target="_blank">release notes</a> or the <a href="http://bit.ly/dldDocs" target="_blank">tip sheet</a> for more detail.</h1>
       
-       <apex:pageBlock title="Last 5 Api Events" id="LastFive" >
+       <apex:pageBlock title="Today's Api Events" id="TodaysEvents" >
         <apex:dataTable value="{!ae}"
                         var="sd"
                         cellPadding="4" border="1">

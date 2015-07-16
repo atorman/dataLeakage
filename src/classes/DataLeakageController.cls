@@ -32,11 +32,11 @@
 global with sharing class DataLeakageController {
    public List<ApiEvent> ae{get;set;}
     
-   // used for the last 5 API Events
+   // used to query today's events API Events
     public DataLeakageController() {
     	ae = [SELECT AdditionalInfo, ApiType, ApiVersion, Client, ElapsedTime, EventTime, Id, LoginHistoryId, ObjectType, Operation, RowsProcessed, Soql, SourceIp, UserAgent, UserId, Username 
               FROM ApiEvent 
-              ORDER BY EventTime DESC NULLS LAST 
+              WHERE EventTime > Yesterday
               LIMIT 5 ];
    }
     
@@ -45,7 +45,8 @@ global with sharing class DataLeakageController {
     global static ApiEvent[] loadApiEvents() {
         return [SELECT ElapsedTime, EventTime, Id, RowsProcessed, Username, ObjectType, SourceIp, UserAgent
                 FROM ApiEvent 
-                ORDER BY EventTime DESC NULLS LAST 
+                WHERE EventTime > Yesterday
+                //ORDER BY EventTime DESC NULLS LAST 
 				Limit 500 ];
     } 
 }
