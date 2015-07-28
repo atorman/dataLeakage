@@ -12,7 +12,7 @@ The initial pilot of Data Leakage Detection tracks queries in near real time in 
 
 When combined with Login Forensics, you can also track every query back to a unique login to identify anomalies in user behavior.
 
-Each event consists of key information about the Apex execution in the context of a limit including:
+Each event consists of key information about the API transaction including:
 
 * AdditionalInfo
 * ApiType
