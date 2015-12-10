@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
-        <members>DataLeakageController</members>
+        <members>DataForensicsController</members>
         <name>ApexClass</name>
     </types>
     <types>
-        <members>DataLeakagePage</members>
+        <members>DataForensicsPage</members>
         <name>ApexPage</name>
     </types>
     <types>
-        <members>Data_Leakage</members>
+        <members>Data_Forensics</members>
         <name>CustomTab</name>
     </types>
     <types>
-        <members>Data_Leakage</members>
+        <members>Data_Forensics</members>
         <name>PermissionSet</name>
     </types>
-    <version>34.0</version>
+    <version>36.0</version>
 </Package>

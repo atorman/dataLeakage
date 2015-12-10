@@ -29,24 +29,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-global with sharing class DataLeakageController {
+global with sharing class DataForensicsController {
    public List<ApiEvent> ae{get;set;}
     
    // used to query today's events API Events
-    public DataLeakageController() {
-    	ae = [SELECT AdditionalInfo, ApiType, ApiVersion, Client, ElapsedTime, EventTime, Id, LoginHistoryId, ObjectType, Operation, RowsProcessed, Soql, SourceIp, UserAgent, UserId, Username 
+    public DataForensicsController() {
+        // RecordData requrires additional permission
+        ae = [SELECT AdditionalInfo, ApiType, ApiVersion, RecordData, Client, ElapsedTime, EventDate, Id, LoginHistoryId, ObjectType, Operation, RowsProcessed, Soql, SourceIp, UserAgent, UserId, Username 
               FROM ApiEvent 
-              WHERE EventTime > Yesterday
+              WHERE EventDate > Yesterday
+              //ORDER BY EventDate DESC NULLS LAST
               LIMIT 5 ];
    }
     
    // used for Time Series Charts  
    @RemoteAction   
     global static ApiEvent[] loadApiEvents() {
-        return [SELECT ElapsedTime, EventTime, Id, RowsProcessed, Username, ObjectType, SourceIp, UserAgent
+        return [SELECT ElapsedTime, EventDate, Id, RowsProcessed, Username, ObjectType, SourceIp, UserAgent
                 FROM ApiEvent 
-                WHERE EventTime > Yesterday
-                //ORDER BY EventTime DESC NULLS LAST 
-				Limit 500 ];
+                WHERE EventDate > Yesterday
+                //ORDER BY EventDate DESC NULLS LAST 
+                Limit 10 ];
     } 
 }

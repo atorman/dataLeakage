@@ -29,13 +29,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-<apex:page controller="DataLeakageController" sidebar="false">
+<apex:page controller="DataForensicsController" sidebar="false">
     <!-- Google API inclusion -->
     <apex:includeScript id="a" value="https://www.google.com/jsapi" />
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-    <apex:sectionHeader title="Data Leakage Events" subtitle="ApiEvents "/><br/>
+    <apex:sectionHeader title="Data Forensics Events" subtitle="ApiEvents "/><br/>
       
-        <h1>To learn more about the Data Leakage Detection Pilot, read the <a href="http://bit.ly/dldReleaseNotes" target="_blank">release notes</a> or the <a href="http://bit.ly/dldDocs" target="_blank">tip sheet</a> for more detail.</h1>
+      <h1>To learn more about the Data Forensics Detection Pilot, read the <a href="http://bit.ly/dldReleaseNotes" target="_blank">release notes</a> or the <a href="http://bit.ly/dldDocs" target="_blank">tip sheet</a> for more detail.</h1>
       
        <apex:pageBlock title="Today's Api Events" id="TodaysEvents" >
         <apex:dataTable value="{!ae}"
@@ -45,13 +45,17 @@
             <apex:facet name="header" >User Name</apex:facet>
             {!sd.Username}
           </apex:column>
-          <apex:column >
+          <apex:column width="80px">
             <apex:facet name="header" >Soql</apex:facet>
             {!sd.Soql}
           </apex:column>
+         <apex:column >
+            <apex:facet name="header" >Record Data</apex:facet>
+            {!sd.RecordData}
+          </apex:column>
           <apex:column >
-            <apex:facet name="header" >Event Time</apex:facet>
-            {!sd.EventTime}
+            <apex:facet name="header" >Event Date</apex:facet>
+            {!sd.EventDate}
           </apex:column>
           <apex:column >
             <apex:facet name="header" >Rows Processed</apex:facet>
@@ -104,7 +108,7 @@
         // Set a callback to run when the Google Visualization API is loaded.
         google.setOnLoadCallback(drawAll);   
 
-    	// call each individual charting function 
+        // call each individual charting function 
         function drawAll(){
             ApiEventElapsedTime();
             ApiEventRowsProcessed();
@@ -118,7 +122,7 @@
         function ApiEventElapsedTime() {        
           
             // get the metric data from the Apex Controller:
-            DataLeakageController.loadApiEvents( 
+            DataForensicsController.loadApiEvents( 
                  function(result, event){  
                      
                      console.log('result = ' + result );
@@ -127,14 +131,14 @@
                      
                      // prepare table model for chart with columns
                      var data = new google.visualization.DataTable();
-                     data.addColumn('date', 'EventTime');
+                     data.addColumn('date', 'EventDate');
                      data.addColumn('number', 'ElapsedTime');
                      console.log('data = ' + data );
                      
                      // add rows from the remoting results
                      for(var i =0; i<result.length;i++){
                         var r = result[i];
-                        var myDate = new Date(r.EventTime);
+                        var myDate = new Date(r.EventDate);
                         data.addRow([myDate, r.ElapsedTime]); 
                       }
                     
@@ -160,7 +164,7 @@
         function ApiEventRowsProcessed() {        
           
             // get the metric data from the Apex Controller:
-            DataLeakageController.loadApiEvents( 
+            DataForensicsController.loadApiEvents( 
                  function(result, event){  
                      
                      console.log('result = ' + result );
@@ -169,14 +173,14 @@
                      
                      // prepare table model for chart with columns
                      var data = new google.visualization.DataTable();
-                     data.addColumn('date', 'EventTime');
+                     data.addColumn('date', 'EventDate');
                      data.addColumn('number', 'RowsProcessed');
                      console.log('data = ' + data );
                      
                      // add rows from the remoting results
                      for(var i =0; i<result.length;i++){
                         var r = result[i];
-                        var myDate = new Date(r.EventTime);
+                        var myDate = new Date(r.EventDate);
                         data.addRow([myDate, r.RowsProcessed ]); 
                       }
                     
@@ -201,7 +205,7 @@
     function ApiEventsByUser() {         
              
               // get the metric data from the Apex Controller:
-              DataLeakageController.loadApiEvents( 
+              DataForensicsController.loadApiEvents( 
                      function(result, event){  
                         
                         // declare the empty nested map objects
@@ -211,16 +215,16 @@
                         // build the nested map object
                         for (var i in result) {
                             var elt = result[i];
-                            if (elt === undefined || elt.EventTime === undefined) {
+                            if (elt === undefined || elt.EventDate === undefined) {
                                 continue;
                             }
     
                             // if not null, add to it; if null build the first map object
-                            if(finalMap[elt.EventTime] == undefined) {
-                                finalMap[elt.EventTime] = {};
+                            if(finalMap[elt.EventDate] == undefined) {
+                                finalMap[elt.EventDate] = {};
                             }
                             
-                            finalMap[elt.EventTime][elt.Username] = elt.RowsProcessed;
+                            finalMap[elt.EventDate][elt.Username] = elt.RowsProcessed;
     
                             if (elt.Username !== undefined){
                                 userNames[elt.Username] = 1;
@@ -266,7 +270,7 @@
     function ApiEventsByObject() {         
              
               // get the metric data from the Apex Controller:
-              DataLeakageController.loadApiEvents( 
+              DataForensicsController.loadApiEvents( 
                      function(result, event){  
                         
                         // declare the empty nested map objects
@@ -276,16 +280,16 @@
                         // build the nested map object
                         for (var i in result) {
                             var elt = result[i];
-                            if (elt === undefined || elt.EventTime === undefined) {
+                            if (elt === undefined || elt.EventDate === undefined) {
                                 continue;
                             }
     
                             // if not null, add to it; if null build the first map object
-                            if(finalMap[elt.EventTime] == undefined) {
-                                finalMap[elt.EventTime] = {};
+                            if(finalMap[elt.EventDate] == undefined) {
+                                finalMap[elt.EventDate] = {};
                             }
                             
-                            finalMap[elt.EventTime][elt.ObjectType] = elt.RowsProcessed;
+                            finalMap[elt.EventDate][elt.ObjectType] = elt.RowsProcessed;
     
                             if (elt.ObjectType !== undefined){
                                 objectTypes[elt.ObjectType] = 1;
@@ -331,7 +335,7 @@
     function ApiEventsBySourceIp() {         
              
               // get the metric data from the Apex Controller:
-              DataLeakageController.loadApiEvents( 
+              DataForensicsController.loadApiEvents( 
                      function(result, event){  
                         
                         // declare the empty nested map objects
@@ -341,16 +345,16 @@
                         // build the nested map object
                         for (var i in result) {
                             var elt = result[i];
-                            if (elt === undefined || elt.EventTime === undefined) {
+                            if (elt === undefined || elt.EventDate === undefined) {
                                 continue;
                             }
     
                             // if not null, add to it; if null build the first map object
-                            if(finalMap[elt.EventTime] == undefined) {
-                                finalMap[elt.EventTime] = {};
+                            if(finalMap[elt.EventDate] == undefined) {
+                                finalMap[elt.EventDate] = {};
                             }
                             
-                            finalMap[elt.EventTime][elt.SourceIp] = elt.RowsProcessed;
+                            finalMap[elt.EventDate][elt.SourceIp] = elt.RowsProcessed;
     
                             if (elt.SourceIp !== undefined){
                                 sourceIps[elt.SourceIp] = 1;
@@ -396,7 +400,7 @@
     function ApiEventsByUserAgent() {         
              
               // get the metric data from the Apex Controller:
-              DataLeakageController.loadApiEvents( 
+              DataForensicsController.loadApiEvents( 
                      function(result, event){  
                         
                         // declare the empty nested map objects
@@ -406,16 +410,16 @@
                         // build the nested map object
                         for (var i in result) {
                             var elt = result[i];
-                            if (elt === undefined || elt.EventTime === undefined) {
+                            if (elt === undefined || elt.EventDate === undefined) {
                                 continue;
                             }
     
                             // if not null, add to it; if null build the first map object
-                            if(finalMap[elt.EventTime] == undefined) {
-                                finalMap[elt.EventTime] = {};
+                            if(finalMap[elt.EventDate] == undefined) {
+                                finalMap[elt.EventDate] = {};
                             }
                             
-                            finalMap[elt.EventTime][elt.UserAgent] = elt.RowsProcessed;
+                            finalMap[elt.EventDate][elt.UserAgent] = elt.RowsProcessed;
     
                             if (elt.UserAgent !== undefined){
                                 userAgents[elt.UserAgent] = 1;
